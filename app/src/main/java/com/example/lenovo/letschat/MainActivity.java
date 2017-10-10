@@ -28,7 +28,8 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onClick(View view) {
 
-                Snackbar.make(view, "Ak with your own action", Snackbar.LENGTH_LONG)
+
+                Snackbar.make(view, "fuckoff with your own action", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
             }
         });
