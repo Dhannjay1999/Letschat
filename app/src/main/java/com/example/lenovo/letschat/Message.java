@@ -10,11 +10,21 @@ private String id;
     private String user;
     private String imageuri;
 
+    public Message(){
+
+
+    }
     public Message(String id, String msg, String user, String imageuri) {
         this.id = id;
         this.msg = msg;
         this.user = user;
         this.imageuri = imageuri;
+    }
+    public Message(String id, String msg, String user) {
+        this.id = id;
+        this.msg = msg;
+        this.user = user;
+
     }
 
     public String getId() {

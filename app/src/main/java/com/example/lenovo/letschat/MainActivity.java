@@ -2,6 +2,7 @@ package com.example.lenovo.letschat;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.provider.Telephony;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -22,30 +23,42 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.ViewGroup;
-import android.widget.TextView;
+import android.widget.AdapterView;
+import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.ListView;
 import android.widget.Toast;
 
 import com.firebase.ui.auth.AuthUI;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
+import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
-    FirebaseDatabase f;
-    DatabaseReference d;
+    public FirebaseDatabase f;
+public    DatabaseReference d;
 
 
 
-private FirebaseAuth mfirebseauth;
+public FirebaseAuth mfirebseauth;
+    ValueEventListener a;
     private static final String TAG="Mess";
+    public static  final int Default_Msg_Limit=1000;
     public static final int RC_SIGN_IN = 1;
     private SectionsPagerAdapter mSectionsPagerAdapter;
     private ViewPager mViewPager;
     private TabLayout tabLayout;
     private FirebaseAuth.AuthStateListener mauthstatelistener;
-    FirebaseDatabase f;
+
+    public EditText mytext;
+ public ImageButton msgbtn;
 
 
     @Override
@@ -55,6 +68,8 @@ private FirebaseAuth mfirebseauth;
         Log.i(TAG,"start point");
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+//        mytext=(EditText)findViewById(R.id.mytext);
+//        msgbtn=(ImageButton)findViewById(R.id.msgbtn);
         mfirebseauth=FirebaseAuth.getInstance();
 f=FirebaseDatabase.getInstance();
         d=f.getReference("Chat");
@@ -73,6 +88,29 @@ f=FirebaseDatabase.getInstance();
             }
         });
 
+//        mytext.addTextChangedListener(new TextWatcher() {
+//            @Override
+//            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+//            }
+//
+//            @Override
+//            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+//                if (charSequence.toString().trim().length() > 0) {
+//                    msgbtn.setEnabled(true);
+//                } else {
+//                    msgbtn.setEnabled(false);
+//                }
+//            }
+
+//            @Override
+//            public void afterTextChanged(Editable editable) {
+//            }
+//        });
+//        mytext.setFilters(new InputFilter[]{new InputFilter.LengthFilter(Default_Msg_Limit)});
+
+
+
+
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
@@ -84,6 +122,8 @@ f=FirebaseDatabase.getInstance();
         Log.i(TAG,"middle point");
         tabLayout = (TabLayout) findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(mViewPager);
+
+
 
         mauthstatelistener=new FirebaseAuth.AuthStateListener() {
             @Override
@@ -108,7 +148,8 @@ f=FirebaseDatabase.getInstance();
                             RC_SIGN_IN);
             }
         }
-    };}
+    };
+}
 
     @Override
     public void onBackPressed() {
@@ -185,13 +226,14 @@ f=FirebaseDatabase.getInstance();
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if(requestCode==RC_SIGN_IN) {
+        if (requestCode == RC_SIGN_IN) {
             if (resultCode == RESULT_OK) {
                 Toast.makeText(MainActivity.this, "Signed in", Toast.LENGTH_SHORT).show();
             } else if (resultCode == RESULT_CANCELED) {
                 Toast.makeText(MainActivity.this, "Not Signed in", Toast.LENGTH_SHORT).show();
                 finish();
             }
+
         }
     }
     public static class PlaceholderFragment extends Fragment {
@@ -199,6 +241,21 @@ f=FirebaseDatabase.getInstance();
          * The fragment argument representing the section number for this
          * fragment.
          */
+        int no;
+        public FirebaseDatabase f;
+        public    DatabaseReference d;
+       ListView mylist;
+       static ArrayList<Details> details;
+        AdapterList adapterList;
+        public FirebaseAuth mfirebseauth;
+        ValueEventListener a;
+        public static  final int Default_Msg_Limit=1000;
+        public static final int RC_SIGN_IN = 1;
+        private FirebaseAuth.AuthStateListener mauthstatelistener;
+        DatabaseReference df;
+        public EditText mytext;
+        public ImageButton msgbtn;
+
         private static final String ARG_SECTION_NUMBER = "section_number";
 
         public PlaceholderFragment() {
@@ -219,8 +276,126 @@ f=FirebaseDatabase.getInstance();
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                                  Bundle savedInstanceState) {
-            View rootView = inflater.inflate(R.layout.fragment_main2, container, false);
-            return rootView;
+            f = FirebaseDatabase.getInstance();
+            d = f.getReference("Chat");
+            df = f.getReference("users");
+            mfirebseauth=FirebaseAuth.getInstance();
+            df.child(mfirebseauth.getCurrentUser().getUid()).child("name").setValue(mfirebseauth.getCurrentUser().getDisplayName());
+
+            Bundle b = getArguments();
+
+            int selectionNumber = b.getInt(ARG_SECTION_NUMBER);
+            details = new ArrayList<>();
+            adapterList = new AdapterList(getActivity(), details);
+
+
+
+                     if (selectionNumber == 1) {
+
+
+                View rootView = inflater.inflate(R.layout.fragment_main2, container, false);
+                return rootView;
+                }
+
+//            mytext=(EditText) rootView.findViewById(R.id.mytext);
+//            msgbtn=(ImageButton)rootView.findViewById(R.id.msgbtn);
+
+//DatabaseReference users=d.child("users").child(mfirebseauth.getCurrentUser().getUid());
+//users.child("Name").setValue(mfirebseauth.getCurrentUser().getDisplayName());
+            else if(selectionNumber==2)
+            {
+                no=2;
+                View rootView = inflater.inflate(R.layout.fragment_main2, container, false);
+                mylist = (ListView) rootView.findViewById(R.id.mylist);
+                mylist.setAdapter(adapterList);
+                mylist.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                        Intent i1=new Intent(getActivity(), Inbox.class);
+                        i1.putExtra("UserNames",details.get(i).getName());
+                        i1.putExtra("FireAuth",mfirebseauth.getCurrentUser().getDisplayName());
+                        startActivity(i1);
+                    }
+                });
+
+                return rootView;
+            }
+            else
+            {
+                View rootView = inflater.inflate(R.layout.fragment_main2, container, false);
+
+                no=3;
+                return rootView;
+            }
+//            mytext.addTextChangedListener(new TextWatcher() {
+//                @Override
+//                public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+//                }
+//
+//                @Override
+//                public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+//                    if (charSequence.toString().trim().length() > 0) {
+//                        msgbtn.setEnabled(true);
+//                    } else {
+//                        msgbtn.setEnabled(false);
+//                    }
+//                }
+//
+//                @Override
+//                public void afterTextChanged(Editable editable) {
+//                }
+//            });
+//            mytext.setFilters(new InputFilter[]{new InputFilter.LengthFilter(Default_Msg_Limit)});
+//
+//
+//            msgbtn.setOnClickListener(new View.OnClickListener() {
+//                @Override
+//                public void onClick(View v) {
+//
+//                    String name = mytext.getText().toString().trim();
+//                    FirebaseUser as = mfirebseauth.getCurrentUser();
+//                    String frnd=as.getDisplayName();
+//
+//                    String id = d.push().getKey();
+//                    Message message = new Message(id, name, frnd,null);
+//                    d.child(id).setValue(message);
+//                    mytext.setText("");
+//                }
+//            });
+            }
+        @Override
+        public void onStart() {
+            super.onStart();
+           if(a==null){
+               Log.i(TAG,"Onstart");
+
+                a=df.addValueEventListener(new ValueEventListener() {
+                   @Override
+                   public void onDataChange(DataSnapshot dataSnapshot) {
+                       details.clear();
+                       for(DataSnapshot mysnapshot: dataSnapshot.getChildren()){
+                           Details detail=mysnapshot.getValue(Details.class);
+
+                               details.add(detail);
+
+                           Log.i(TAG,detail.getName());
+                       }
+                       adapterList.notifyDataSetChanged();
+                   }
+
+                   @Override
+                   public void onCancelled(DatabaseError databaseError) {
+
+                   }
+               });
+           }
+
+        }
+        private  void detach() {
+            if (a != null) {
+                df.removeEventListener(a);
+
+            }
         }
     }
 
