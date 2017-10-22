@@ -23,6 +23,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".Inbox"></activity>
+        <activity android:name=".Main2Activity"></activity>
     </application>
 
 </manifest>

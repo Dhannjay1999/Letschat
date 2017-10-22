@@ -1,9 +1,11 @@
 package com.example.lenovo.letschat;
 
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.Telephony;
 import android.support.annotation.NonNull;
+import android.support.annotation.RequiresApi;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
@@ -11,6 +13,9 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.text.Editable;
+import android.text.InputFilter;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -24,6 +29,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ListView;
@@ -39,6 +45,8 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+
+import static android.R.attr.onClick;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -56,25 +64,26 @@ public FirebaseAuth mfirebseauth;
     private ViewPager mViewPager;
     private TabLayout tabLayout;
     private FirebaseAuth.AuthStateListener mauthstatelistener;
-
+    String al;
     public EditText mytext;
  public ImageButton msgbtn;
 
 
+    @RequiresApi(api = Build.VERSION_CODES.GINGERBREAD)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Log.i(TAG,"start point");
+
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 //        mytext=(EditText)findViewById(R.id.mytext);
 //        msgbtn=(ImageButton)findViewById(R.id.msgbtn);
-        mfirebseauth=FirebaseAuth.getInstance();
-f=FirebaseDatabase.getInstance();
+        f=FirebaseDatabase.getInstance();
         d=f.getReference("Chat");
         mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
-
+mfirebseauth=FirebaseAuth.getInstance();
         // Set up the ViewPager with the sections adapter.
         mViewPager = (ViewPager) findViewById(R.id.container);
         mViewPager.setAdapter(mSectionsPagerAdapter);
@@ -151,6 +160,7 @@ f=FirebaseDatabase.getInstance();
     };
 }
 
+    @RequiresApi(api = Build.VERSION_CODES.GINGERBREAD)
     @Override
     public void onBackPressed() {
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -192,9 +202,15 @@ f=FirebaseDatabase.getInstance();
         if (id == R.id.nav_camera) {
             // Handle the camera action
         } else if (id == R.id.nav_gallery) {
+            AuthUI.getInstance().signOut(this);
 
         } else if (id == R.id.nav_slideshow) {
-
+String as=mfirebseauth.getCurrentUser().getDisplayName();
+al=mfirebseauth.getCurrentUser().getUid();
+            Intent i=new Intent(MainActivity.this,Main2Activity.class);
+            i.putExtra("user",as);
+            i.putExtra("ids",al);
+            startActivity(i);
         } else if (id == R.id.nav_manage) {
 
         } else if (id == R.id.nav_share) {
@@ -221,7 +237,7 @@ f=FirebaseDatabase.getInstance();
         mfirebseauth.removeAuthStateListener(mauthstatelistener);
 
         }
-    }
+  }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -242,17 +258,23 @@ f=FirebaseDatabase.getInstance();
          * fragment.
          */
         int no;
+        FloatingActionButton grpbtn;
+        ListView grplist;
+        EditText grptext;
         public FirebaseDatabase f;
         public    DatabaseReference d;
+        DatabaseReference Dg;
        ListView mylist;
        static ArrayList<Details> details;
         AdapterList adapterList;
-        public FirebaseAuth mfirebseauth;
-        ValueEventListener a;
+         FirebaseAuth mfirebseauth;
+        ValueEventListener a,b;
         public static  final int Default_Msg_Limit=1000;
         public static final int RC_SIGN_IN = 1;
         private FirebaseAuth.AuthStateListener mauthstatelistener;
         DatabaseReference df;
+        ArrayList<Message> detailsgroup;
+        AdapterMessage adaptergroup;
         public EditText mytext;
         public ImageButton msgbtn;
 
@@ -273,18 +295,24 @@ f=FirebaseDatabase.getInstance();
             return fragment;
         }
 
+
+
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                                  Bundle savedInstanceState) {
+
             f = FirebaseDatabase.getInstance();
             d = f.getReference("Chat");
             df = f.getReference("users");
+            Dg=f.getReference("Group Chat");
             mfirebseauth=FirebaseAuth.getInstance();
             df.child(mfirebseauth.getCurrentUser().getUid()).child("name").setValue(mfirebseauth.getCurrentUser().getDisplayName());
 
-            Bundle b = getArguments();
+             Bundle b = getArguments();
 
             int selectionNumber = b.getInt(ARG_SECTION_NUMBER);
+            detailsgroup=new ArrayList<>();
+            adaptergroup=new AdapterMessage(getActivity(),detailsgroup);
             details = new ArrayList<>();
             adapterList = new AdapterList(getActivity(), details);
 
@@ -294,6 +322,7 @@ f=FirebaseDatabase.getInstance();
 
 
                 View rootView = inflater.inflate(R.layout.fragment_main2, container, false);
+                         onStart();
                 return rootView;
                 }
 
@@ -317,14 +346,62 @@ f=FirebaseDatabase.getInstance();
                         startActivity(i1);
                     }
                 });
-
+onStart();
                 return rootView;
             }
             else
             {
-                View rootView = inflater.inflate(R.layout.fragment_main2, container, false);
+                View rootView = inflater.inflate(R.layout.activity_inbox, container, false);
+                grpbtn=(FloatingActionButton)rootView.findViewById(R.id.msgbtn);
+                grptext=(EditText)rootView.findViewById(R.id.mytext);
+                grplist=(ListView)rootView.findViewById(R.id.privatemessage);
 
-                no=3;
+                 onStart();
+                grptext.addTextChangedListener(new TextWatcher() {
+                    @Override
+                    public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                        grpbtn.setEnabled(false);
+                    }
+
+                    @Override
+                    public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                        if (charSequence.toString().trim().length() > 0) {
+                            grpbtn.setEnabled(true);
+                        } else {
+                            grpbtn.setEnabled(false);
+                        }
+                    }
+
+                    @Override
+                    public void afterTextChanged(Editable editable) {
+                        grpbtn.setEnabled(false);
+                    }
+                });
+                grptext.setFilters(new InputFilter[]{new InputFilter.LengthFilter(Default_Msg_Limit)});
+
+
+                grpbtn.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        detailsgroup.clear();
+                        String messages = grptext.getText().toString().trim();
+
+                        String id = Dg.push().getKey();
+
+
+                        Message message = new Message(id,messages,mfirebseauth.getCurrentUser().getDisplayName(),"Anonymus");
+                        Dg.child(id).setValue(message);
+
+                        grptext.setText("");
+                    }
+                });
+
+
+
+                        no = 3;
+                grplist.setAdapter(adaptergroup);
+
+
                 return rootView;
             }
 //            mytext.addTextChangedListener(new TextWatcher() {
@@ -363,11 +440,38 @@ f=FirebaseDatabase.getInstance();
 //                }
 //            });
             }
+
+
+
         @Override
         public void onStart() {
             super.onStart();
+            if(b==null){
+                b=Dg.addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        detailsgroup.clear();
+                        for(DataSnapshot m: dataSnapshot.getChildren()){
+                            Message d1=m.getValue(Message.class);
+                            detailsgroup.add(d1);
+
+                        }
+                        adaptergroup.notifyDataSetChanged();
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+                });
+
+            }
+
+
+
            if(a==null){
                Log.i(TAG,"Onstart");
+
 
                 a=df.addValueEventListener(new ValueEventListener() {
                    @Override
@@ -391,13 +495,33 @@ f=FirebaseDatabase.getInstance();
            }
 
         }
+
+
+
+        @Override
+        public void onResume() {
+            super.onResume();
+
+        }
+
+        @Override
+        public void onPause() {
+            super.onPause();
+            if(a!=null){
+                mfirebseauth.removeAuthStateListener(mauthstatelistener);
+                detach();
+               details.clear();
+            }
+        }
+
         private  void detach() {
             if (a != null) {
                 df.removeEventListener(a);
-
             }
+            a=null;
         }
     }
+
 
     /**
      * A {@link FragmentPagerAdapter} that returns a fragment corresponding to

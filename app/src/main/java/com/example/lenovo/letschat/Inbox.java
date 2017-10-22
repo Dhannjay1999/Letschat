@@ -1,6 +1,7 @@
 package com.example.lenovo.letschat;
 
 import android.content.Intent;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.Editable;
@@ -34,7 +35,7 @@ private static final int Default_Msg_Limit=1000;
     DatabaseReference d;
     ArrayList<Message> myMessageList;
     DatabaseReference df;
-    ImageButton msgbtn;
+    FloatingActionButton msgbtn;
     ImageButton gallerybtn;
     EditText mytext;
     String msg;
@@ -54,7 +55,7 @@ private static final int Default_Msg_Limit=1000;
         myMessageList=new ArrayList<>();
          adapterMessage=new AdapterMessage(this,myMessageList);
         mylistView.setAdapter(adapterMessage);
-        msgbtn=(ImageButton)findViewById(R.id.msgbtn);
+        msgbtn=(FloatingActionButton) findViewById(R.id.msgbtn);
         gallerybtn=(ImageButton)findViewById(R.id.gallerybtn);
         mytext=(EditText)findViewById(R.id.mytext);
                     mytext.addTextChangedListener(new TextWatcher() {
@@ -95,7 +96,15 @@ private static final int Default_Msg_Limit=1000;
     });
 
     }
-
+    private void scrollMyListViewToBottom() {
+        mylistView.post(new Runnable() {
+            @Override
+            public void run() {
+                // Select the last row so it will scroll into view...
+                mylistView.setSelection(adapterMessage.getCount() - 1);
+            }
+        });
+    }
     @Override
     protected void onStart() {
         super.onStart();
@@ -111,6 +120,7 @@ private static final int Default_Msg_Limit=1000;
                         myMessageList.add(message);
                     }
                     adapterMessage.notifyDataSetChanged();
+                    scrollMyListViewToBottom();
                 }
 
                 @Override
